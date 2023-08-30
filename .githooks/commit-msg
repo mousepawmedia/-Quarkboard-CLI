@@ -1,0 +1,10 @@
+#!/bin/bash
+GITVENV=.gitvenv
+MSG_FILE=$1
+
+if [ ! -d "${GITVENV}" ]; then
+  python3.10 -m venv "${GITVENV}"
+  "${GITVENV}"/bin/pip install commitizen
+fi
+
+"${GITVENV}"/bin/cz check --allow-abort --commit-msg-file $MSG_FILE
