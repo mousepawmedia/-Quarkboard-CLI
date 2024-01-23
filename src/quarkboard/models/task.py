@@ -1,6 +1,6 @@
 from sqlalchemy import String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from quarkboard.constants import MAX_TITLE_LENGTH
+from sqlalchemy.orm import ForeignKey, Mapped, mapped_column, relationship
+from quarkboard.constants import MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH
 from quarkboard.models.base import BaseModel
 from quarkboard.models.static import (
     Impact,
@@ -13,26 +13,47 @@ from quarkboard.models.static import (
     Caught,
     Status
 )
+from quarkboard.models.user import User
+from quarkboard.models.project import Project
 
 
 class Task(BaseModel):
-    __tablename__ = "status"
+    __tablename__ = "tasks"
 
     pk: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(MAX_TITLE_LENGTH))
-    description: Mapped[str] = mapped_column()
+    description: Mapped[str] = mapped_column(String(MAX_DESCRIPTION_LENGTH))
 
-    impact: Mapped[Impact] = relationship()
-    gravity: Mapped[Gravity] = relationship()
-    priority: Mapped[Priority] = relationship()
+    project: Mapped["Project"] = relationship(back_populates="tasks")
+    project_pk: Mapped[int] = mapped_column(ForeignKey("projects.pk"))
 
-    distance: Mapped[Distance] = relationship()
-    friction: Mapped[Friction] = relationship()
-    relativity: Mapped[Relativity] = relationship()
-    energy_points: Mapped[int] = mapped_column()
+    impact: Mapped["Impact"] = relationship()
+    gravity: Mapped["Gravity"] = relationship()
+    priority: Mapped["Priority"] = relationship()
 
-    origin: Mapped[Origin] = relationship()
-    caught: Mapped[Caught] = relationship()
+    phases: Mapped[list["TaskPhase"]] = relationship(mapped_column="task")
+
+    origin: Mapped["Origin"] = relationship()
+    caught: Mapped["Caught"] = relationship()
     volatility: Mapped[int] = mapped_column()
 
-    status: Mapped[Status] = relationship()
+    status: Mapped["Status"] = relationship()
+
+
+class TaskPhase(BaseModel):
+    __tablename__ = "task_phases"
+
+    pk: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(MAX_TITLE_LENGTH))
+    description: Mapped[str] = mapped_column(String(MAX_DESCRIPTION_LENGTH))
+
+    task: Mapped["Task"] = relationship(back_populates="phases")
+    task_pk: Mapped[int] = mapped_column(ForeignKey("tasks.pk"))
+
+    distance: Mapped["Distance"] = relationship()
+    friction: Mapped["Friction"] = relationship()
+    relativity: Mapped["Relativity"] = relationship()
+    energy_points: Mapped[int] = mapped_column()
+
+    assignee: Mapped["User"] = relationship()
+    assignee_pk: Mapped[int] = mapped_column(ForeignKey("users.pk"))
